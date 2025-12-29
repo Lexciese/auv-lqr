@@ -33,14 +33,14 @@ class LQR():
             self.radius = self.vehicle_radius
 
     # the lqr control loop
-    def run(self):
+    def run(self, state):
         self.gravity_effects = self.G(self.roll, self.pitch, self.radius)
 
         # calculate A matrix
         self.A = self.df_dstate(self.x, self.y, self.z, self.roll, self.pitch, self.yaw, self.u, self.v, self.w, self.p, self.q, self.r, self.radius)
 
         # calculate lqr error
-        self.lqr_error = self.state - self.target_state.T
+        self.lqr_error = state - self.target_state.T
 
         # Minimum distances between angles are used in  the error
         # https://stackoverflow.com/a/2007279
@@ -60,16 +60,17 @@ class LQR():
             i2 = np.where(self.du <= 0.0)[0]
             force2thrusteffort[i1] = self.force2thrusteffort_forward
             force2thrusteffort[i2] = self.force2thrusteffort_backward
-            print(force2thrusteffort)
             self.du = np.diag(force2thrusteffort) @ self.du
 
-            # modify du to counteract the gravity and the buoyancy effect
-            force2thrusteffort = np.eye(self.numthrusters) * self.force2thrusteffort_forward
-            du_gravity_effects = np.linalg.lstsq(self.thrust_allocation, self.gravity_effects, rcond=None)[0] # maps the force to thrust (N)
-            du_gravity_effects = force2thrusteffort @ du_gravity_effects # convert thrust-force to thrust-effort
+            # modify "du" to counteract the gravity and the buoyancy effect
+            force_to_thrusteffort = np.ones(self.numthrusters) * self.force2thrusteffort_forward
+            du_gravity_effects = np.linalg.lstsq(self.thrust_allocation, self.gravity_effects, rcond=None)[0].flatten() # maps the force to thrust (N)
+            du_gravity_effects = force_to_thrusteffort * du_gravity_effects # convert thrust-force to thrust-effort
             self.du = self.du - du_gravity_effects
 
         except Exception as e:
             print(f"LQR calculation have error: {e}")
+
+        # print(self.A.shape, self.B.shape, self.du.shape)
         return self.A, self.B, self.du
 
