@@ -1,3 +1,3 @@
 # auv-lqr
 
-## LQR Control for AUV with Python implementations for autonomous underwater vehicle
+## LQR Control for Autonomous Underwater Vehicle (AUV) in Python
