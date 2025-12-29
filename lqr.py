@@ -47,8 +47,8 @@ class LQR():
         # https://stackoverflow.com/a/2007279
         for i in range(3):
             self.lqr_error[3 + i] = np.arctan2(
-                np.sin(self.state[3 + i] - self.target_state[3 + i]),
-                np.cos(self.state[3 + i] - self.target_state[3 + i])
+                np.sin(state[3 + i] - self.target_state[3 + i]),
+                np.cos(state[3 + i] - self.target_state[3 + i])
             )
         # print(f"state: {self.state[5]}, target: {self.target_state[5]}, yaw error: {self.lqr_error[5]}")
 
@@ -74,8 +74,9 @@ class LQR():
         except Exception as e:
             print(f"LQR calculation have error: {e}")
 
+        # print(f"state: {state}")
         # print(self.A.shape, self.B.shape, self.du.shape)
-        print(f"A: {self.A}")
+        # print(f"A: {self.A}")
         # print(f"B: {self.B}")
         # print(f"DU: {self.du}")
         # print(f"K: {self.K}")
