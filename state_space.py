@@ -68,6 +68,8 @@ class StateSpace:
         self.C = self.coriolisMatrix(self.M, self.state)
         self.D = sym.Matrix(self.linear_damping + self.quadratic_damping);
         self.G = self.gravityMatrix(self.state)
+        self.G = self.G.subs(parameter_map)
+
 
         # Non-linear dynamics function of f (page 138 of Computer-Aided Control Systems Design, Chin 2013)
         f1 = sym.zeros(12, 12)
@@ -92,7 +94,7 @@ class StateSpace:
         eps = 1e-6
         self.u_control = sym.zeros(1, thruster_count)
         for i in range(thruster_count):
-            self.u_control[i] = self.du[i] * self.du[i] / sym.sqrt(self.du[i]**2 + eps)
+            self.u_control[i] = sym.Piecewise((self.du[i]**2, self.du[i] >= 0), (-self.du[i]**2, self.du[i] < 0))
 
         # generalized force tau
         self.tau = self.thrust_allocation*self.u_control.T
@@ -173,14 +175,15 @@ class StateSpace:
     # The system is linearized via the jacoboian
     def linearize(self):
         # substitude constant parameter
-        self.state_dot = self.F_dot
+        self.state_dot = self.F_dot.subs(parameter_map)
+        # print(parameter_map)
         # jacobian linearization with respect to state
         self.df_dstate_sym = self.state_dot.jacobian(self.state)
         # jacobian linearization with respect to control
         self.df_dcontrol_sym = self.state_dot.jacobian(self.du.T)
 
 
-        self.df_dstate_funct = sym.lambdify([self.x, self.y, self.z, self.roll, self.pitch, self.yaw, self.u, self.v, self.w, self.p, self.q, self.r, self.radius], self.df_dstate_sym, modules="numpy")
+        self.df_dstate_funct = sym.lambdify([x, y, z, roll, pitch, yaw, u, v, w, p, q, r, radius], self.df_dstate_sym, modules="numpy")
         self.df_dcontrol_funct = sym.lambdify([self.du0, self.du1, self.du2, self.du3, self.du4, self.du5], self.df_dcontrol_sym, modules="numpy")
         self.df_dcontrol = self.df_dcontrol_funct(1, 1, 1, 1, 1, 1)
         print(self.df_dcontrol)
