@@ -97,7 +97,7 @@ class StateSpace:
             self.u_control[i] = sym.Piecewise((self.du[i]**2, self.du[i] >= 0), (-self.du[i]**2, self.du[i] < 0))
 
         # generalized force tau
-        self.tau = self.thrust_allocation*self.u_control.T
+        self.tau = self.thrust_allocation @ self.u_control.T
 
         # control function g (page 138 of Computer-Aided Control Systems Design, Chin 2013)
         self.g = sym.zeros(12, 1)
@@ -111,6 +111,7 @@ class StateSpace:
             self.F_dot[i, 0] = self.f[i, 0] + self.g[i, 0]
 
         self.linearize()
+        self.G = sym.lambdify([self.roll, self.pitch, self.radius], self.G, modules="numpy")
 
     # return 3x3 anti-symmetric or skew-symmetric matrix
     def s(self, vec):
@@ -135,7 +136,7 @@ class StateSpace:
     def gravityMatrix(self, state):
         phi, theta, psi = state[3], state[4], state[5]
         # W: weight ... F_buoyancy: buoyancy force
-        W = mass *  gravity
+        W = self.mass * self.gravity
         pi = 3.14159265359
         F_buoyancy = ((4/3)*pi*self.radius**3)*self.water_density*self.gravity
 
@@ -186,7 +187,8 @@ class StateSpace:
         self.df_dstate_funct = sym.lambdify([x, y, z, roll, pitch, yaw, u, v, w, p, q, r, radius], self.df_dstate_sym, modules="numpy")
         self.df_dcontrol_funct = sym.lambdify([self.du0, self.du1, self.du2, self.du3, self.du4, self.du5], self.df_dcontrol_sym, modules="numpy")
         self.df_dcontrol = self.df_dcontrol_funct(1, 1, 1, 1, 1, 1)
-        print(self.df_dcontrol)
+        # print(self.df_dcontrol.shape)
+
 
 def main():
     state_space = StateSpace()
