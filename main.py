@@ -29,14 +29,14 @@ def loop(t, state, lqr):
 
 def main():
     state_0 = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-    target_state = np.array([1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    target_state = np.array([1, 2, 3, 0, 0, 1.57, 0, 0, 0, 0, 0, 0])
 
-    Q = np.array([1, 1, 4, 4, 1, 4, 3, 3, 3, 4, 4, 4])
+    Q = np.array([1, 1, 4, 4, 1, 1, 3, 3, 3, 4, 4, 4])
     R = 0.001
 
     # simulation parameter
     t_lower = 0     # lower bound (s)
-    t_upper = 60*3   # upper bound (s)
+    t_upper = 60*2   # upper bound (s)
     h = 2           # time step (s)
     t_span = np.arange(t_lower, t_upper + h, h)
 
