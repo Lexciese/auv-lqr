@@ -68,8 +68,6 @@ class StateSpace:
         self.C = self.coriolisMatrix(self.M, self.state)
         self.D = sym.Matrix(self.linear_damping + self.quadratic_damping);
         self.G = self.gravityMatrix(self.state)
-        self.G = self.G.subs(parameter_map)
-
 
         # Non-linear dynamics function of f (page 138 of Computer-Aided Control Systems Design, Chin 2013)
         f1 = sym.zeros(12, 12)
@@ -78,7 +76,7 @@ class StateSpace:
         f2 = sym.zeros(12, 1)
         f2[6:12, 0] = -self.M.LUsolve(self.G)
 
-        self.f = f1*self.state + f2
+        self.f = f1@self.state + f2
 
         # Control
         # thrust allocation matrix
@@ -102,7 +100,7 @@ class StateSpace:
         # control function g (page 138 of Computer-Aided Control Systems Design, Chin 2013)
         self.g = sym.zeros(12, 1)
         self.M_inv = self.M.inv()
-        self.g[6:12, 0] = self.M_inv * self.tau
+        self.g[6:12, 0] = self.M_inv @ self.tau
 
         # state space
         # non-linear state space model F_dot
@@ -111,12 +109,13 @@ class StateSpace:
             self.F_dot[i, 0] = self.f[i, 0] + self.g[i, 0]
 
         self.linearize()
+        self.G = self.G.subs(parameter_map)
         self.G = sym.lambdify([self.roll, self.pitch, self.radius], self.G, modules="numpy")
 
     # return 3x3 anti-symmetric or skew-symmetric matrix
     def s(self, vec):
         return sym.Matrix([[0.0,        -vec[2],    vec[1]],
-                           [vec[2],     0.0,        vec[0]],
+                           [vec[2],     0.0,        -vec[0]],
                            [-vec[1],    vec[0],     0.0]])
 
     # return 6x6 coriolis matrix (page 53 of Handbook of Marine Craft, 2011)
@@ -124,8 +123,8 @@ class StateSpace:
         v1 = state[6:9, 0]
         v2 = state[9:12, 0]
 
-        s1 = self.s(M[0:3, 0:3] * v1 + M[0:3, 3:6] * v2)
-        s2 = self.s(M[3:6, 0:3] * v1 + M[3:6, 3:6] * v2)
+        s1 = self.s(M[0:3, 0:3] @ v1 + M[0:3, 3:6] @ v2)
+        s2 = self.s(M[3:6, 0:3] @ v1 + M[3:6, 3:6] @ v2)
         C = sym.zeros(6, 6)
         C[0:3, 3:6] = -s1
         C[3:6, 0:3] = -s1
@@ -145,12 +144,12 @@ class StateSpace:
         # buoyancy center position in the robot fixed frame (bx,by,bz) [m]
         bx, by, bz = self.buoyancy_center[0], self.buoyancy_center[1], self.buoyancy_center[2]
 
-        G = sym.Matrix([(W - F_buoyancy)*sin(theta),
-                        -(W - F_buoyancy)*cos(theta)*sin(phi),
-                        -(W - F_buoyancy)*cos(theta)*cos(phi),
-                        -(gy*W - by*F_buoyancy)*cos(theta)*cos(phi) + (gz*W - bz*F_buoyancy)*cos(theta)*sin(phi),
-                        (gz*W - bz*F_buoyancy)*sin(theta) + (gx*W - bx*F_buoyancy)*cos(theta)*cos(phi),
-                        -(gx*W - bx*F_buoyancy)*cos(theta)*sin(phi) - (gy*W - by*F_buoyancy)*sin(theta)])
+        G = sym.Matrix([[(W - F_buoyancy)*sin(theta)],
+                        [-(W - F_buoyancy)*cos(theta)*sin(phi)],
+                        [-(W - F_buoyancy)*cos(theta)*cos(phi)],
+                        [-(gy*W - by*F_buoyancy)*cos(theta)*cos(phi) + (gz*W - bz*F_buoyancy)*cos(theta)*sin(phi)],
+                        [(gz*W - bz*F_buoyancy)*sin(theta) + (gx*W - bx*F_buoyancy)*cos(theta)*cos(phi)],
+                        [-(gx*W - bx*F_buoyancy)*cos(theta)*sin(phi) - (gy*W - by*F_buoyancy)*sin(theta)]])
         return G
 
     # return Transformation from BODY to NED coordinates (page 26 of Handbook of Marine Craft, 2011)
