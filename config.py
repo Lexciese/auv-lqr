@@ -118,7 +118,3 @@ parameter_map = {
     gravity: parameter['gravity'],
     water_density: parameter['water_density'],
 }
-
-
-# if __name__ == "__main__":
-#     config = Config()
