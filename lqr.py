@@ -24,6 +24,11 @@ class LQR():
         self.force2thrusteffort_forward = 0.1
         self.force2thrusteffort_backward = 1.0 * self.force2thrusteffort_forward
 
+        self.force2thrusteffort = np.zeros(self.numthrusters)
+        self.force2thrusteffort_counteract = np.eye(self.numthrusters) * self.force2thrusteffort_forward
+
+    # the lqr control loop
+    def step(self, state):
         # if the sub moves out of the water, the flotability decrease
         if self.z < 0.0:
             self.radius = self.vehicle_radius - abs(self.z)
@@ -32,10 +37,8 @@ class LQR():
         else:
             self.radius = self.vehicle_radius
 
-    # the lqr control loop
-    def run(self, state):
         x, y, z, roll, pitch, yaw, u, v, w, p, q, r = state
-        self.gravity_effects = self.G(roll, pitch, self.radius)
+        gravity_effects = self.G(roll, pitch, self.radius)
 
         # calculate A matrix
         self.A = self.df_dstate(x, y, z, roll, pitch, yaw, u, v, w, p, q, r, self.radius)
@@ -50,29 +53,23 @@ class LQR():
                 np.sin(state[3 + i] - self.target_state[3 + i]),
                 np.cos(state[3 + i] - self.target_state[3 + i])
             )
-        # print(f"state: {self.state[5]}, target: {self.target_state[5]}, yaw error: {self.lqr_error[5]}")
 
-        try:
-            self.K, _, _ = ct.lqr(self.A, self.B, self.Q, self.R)
-            # control thrust du in Newtons
-            self.du = -self.K @ self.lqr_error
-            # convert thrust-force(N) to thrust-effort(%)
-            force2thrusteffort = np.zeros(self.numthrusters)
-            i1 = np.where(self.du >= 0.0)[0]
-            i2 = np.where(self.du <= 0.0)[0]
-            force2thrusteffort[i1] = self.force2thrusteffort_forward
-            force2thrusteffort[i2] = self.force2thrusteffort_backward
-            self.du = np.diag(force2thrusteffort) @ self.du
+        self.K, _, _ = ct.lqr(self.A, self.B, self.Q, self.R)
 
-            # modify "du" to counteract the gravity and the buoyancy effect
-            force2thrusteffort = np.ones(self.numthrusters) * self.force2thrusteffort_forward
-            du_gravity_effects = np.linalg.lstsq(self.thrust_allocation, self.gravity_effects, rcond=None)[0].flatten() # maps the force to thrust (N)
-            du_gravity_effects = force2thrusteffort * du_gravity_effects # convert thrust-force to thrust-effort
-            # self.du = self.du - du_gravity_effects
+        # control thrust du in Newtons
+        self.du = -self.K @ self.lqr_error
 
+        # convert thrust-force(N) to thrust-effort(%)
+        i1 = np.where(self.du >= 0.0)[0]
+        i2 = np.where(self.du <= 0.0)[0]
+        self.force2thrusteffort[i1] = self.force2thrusteffort_forward
+        self.force2thrusteffort[i2] = self.force2thrusteffort_backward
+        self.du = np.diag(self.force2thrusteffort) @ self.du
 
-        except Exception as e:
-            print(f"LQR calculation have error: {e}")
+        # modify "du" to counteract the gravity and the buoyancy effect
+        du_gravity_effects = np.linalg.lstsq(self.thrust_allocation, gravity_effects, rcond=None)[0].flatten() # maps the force to thrust (N)
+        du_gravity_effects = self.force2thrusteffort_counteract @ du_gravity_effects # convert thrust-force to thrust-effort
+        self.du = self.du - du_gravity_effects
 
         # print(f"state: {state}")
         # print(self.A.shape, self.B.shape, self.du.shape)
@@ -82,4 +79,9 @@ class LQR():
         # print(f"K: {self.K}")
         # print(f"self.thrust_allocation: {self.thrust_allocation}")
         return self.A, self.B, self.du
+
+    def simulated_step(self, t, state):
+        self.A, self.B, self.du = self.step(state)
+        return (self.A @ state + self.B @ self.du).flatten()
+
 
