@@ -43,7 +43,7 @@ This repository present a Linear Quadratic Regulator (LQR) for Autonomous Underw
   Available online at [juansrojas/lqr-control-auv](https://github.com/juansrojas/lqr-control-auv/), accessed 2025
 
 - Fossen, T. I. (2021).  
-  *Fossen’s Marine Craft Model.*
+  *Fossen’s Marine Craft Model.*  
   Available online at [https://fossen.biz/html/marineCraftModel.html](https://fossen.biz/html/marineCraftModel.html), accessed 2025.  
 
 - Chin, C. S. (2017).  
