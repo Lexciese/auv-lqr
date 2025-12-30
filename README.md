@@ -2,7 +2,7 @@
 
 ## LQR Control for Autonomous Underwater Vehicle (AUV) in Python
 
-The project contains a Linear Quadratic Regulator (LQR) for Autonomous Underwater Vehicle (AUV) implemented in Python. This project is inspired from [juansrojas/lqr-control-auv](https://github.com/juansrojas/lqr-control-auv/) MATLAB codes.
+This repository present a Linear Quadratic Regulator (LQR) for Autonomous Underwater Vehicle (AUV) implemented in Python. This works is inspired from [juansrojas/lqr-control-auv](https://github.com/juansrojas/lqr-control-auv/) MATLAB codes.  
 
 ## Run the Program
 
@@ -35,3 +35,20 @@ The project contains a Linear Quadratic Regulator (LQR) for Autonomous Underwate
 - Tune the LQR constant, Q element and R element, in `main.py`
 
 - Setpoint or target can be changed in `main.py` at `target_state` variable
+
+## References
+
+- juansrojas. (2022).  
+  *github.com/juansrojas/lqr-control-auv: LQR Control of an Autonomous Underwater Vehicle*  
+  Available online at [juansrojas/lqr-control-auv](https://github.com/juansrojas/lqr-control-auv/), accessed 2025
+
+- Fossen, T. I. (2021).  
+  *Fossen’s Marine Craft Model.*
+  Available online at [https://fossen.biz/html/marineCraftModel.html](https://fossen.biz/html/marineCraftModel.html), accessed 2025.  
+
+- Chin, C. S. (2017).  
+  *Computer-Aided Control Systems Design (p. 138). CRC Press.*
+
+- Fossen, T. I. (2011).  
+  *Handbook of Marine Craft Hydrodynamics and Motion Control (p. 60). John Wiley & Sons.*
+
