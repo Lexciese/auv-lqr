@@ -4,6 +4,8 @@
 
 This repository present a Linear Quadratic Regulator (LQR) for Autonomous Underwater Vehicle (AUV) implemented in Python. This works is inspired from [juansrojas/lqr-control-auv](https://github.com/juansrojas/lqr-control-auv/) MATLAB codes.  
 
+![img](./assets/plot.webp)
+
 ## Run the Program
 
 1. Clone the repository
