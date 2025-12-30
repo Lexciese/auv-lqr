@@ -23,10 +23,6 @@ state = [
 ]
 """
 
-def loop(t, state, lqr):
-    A, B, du = lqr.run(state)
-    return (A @ state + B @ du).flatten()
-
 def main():
     state_0 = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     target_state = np.array([1, 2, 3, 0, 0, 1.57, 0, 0, 0, 0, 0, 0])
@@ -46,11 +42,11 @@ def main():
     # lqr
     lqr = LQR(state_0, target_state, ss.df_dstate_funct, ss.df_dcontrol, ss.G, ss.thrust_allocation, Q, R)
 
-    sol = solve_ivp(loop, [t_lower, t_upper], state_0, t_eval=t_span, args=(lqr,), vectorized=False)
+    sol = solve_ivp(lqr.simulated_step, [t_lower, t_upper], state_0, t_eval=t_span)
 
 
     import matplotlib.pyplot as plt
-    state = sol.y.T  # shape: (time_steps, 12)
+    state = sol.y.T
 
     plt.figure(figsize=(12, 6))
     plt.subplot(2,1,1)
