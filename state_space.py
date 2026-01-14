@@ -2,7 +2,7 @@ import sympy as sym
 from sympy import sin, cos, tan, Derivative
 import numpy as np
 
-from config import *
+from config_8thruster import *
 
 # Fully symbolic non-linear state space model.
 # The model is later used in to simulate the dynamics of the robot.
@@ -15,7 +15,8 @@ class StateSpace:
         self.state[0:6, 0]  = self.pose.T
         self.state[6:12, 0] = self.vel.T
 
-        self.du = sym.Matrix([[du0, du1, du2, du3, du4, du5]])
+        self.du = sym.Matrix([[du0, du1, du2, du3, du4, du5, du6, du7]])
+        self.du = self.du[:, :thruster_count]
 
         self.gravity_center = sym.Matrix([[gx, gy, gz]])
         self.buoyancy_center = sym.Matrix([[bx, by, bz]])
@@ -61,8 +62,10 @@ class StateSpace:
 
         # substitute df_dstate and df_dcontrol with constant, used to evaluate its symbolic so that we can use it as numpy lambda function
         self.df_dstate_funct = sym.lambdify([x, y, z, roll, pitch, yaw, u, v, w, p, q, r, radius], self.df_dstate_sym, modules="numpy")
-        self.df_dcontrol_funct = sym.lambdify([du0, du1, du2, du3, du4, du5], self.df_dcontrol_sym, modules="numpy")
-        self.df_dcontrol = self.df_dcontrol_funct(1, 1, 1, 1, 1, 1)
+        # change the paramater for df_dcontrol_funct based on the number of thruster_cound
+        # example: if i have 6 thruster, then i put du0...du5 and df_dcontrol_funct(1, 1, 1, 1, 1, 1)
+        self.df_dcontrol_funct = sym.lambdify([du0, du1, du2, du3, du4, du5, du6, du7], self.df_dcontrol_sym, modules="numpy")
+        self.df_dcontrol = self.df_dcontrol_funct(1, 1, 1, 1, 1, 1, 1, 1)
 
         # substitute G matrix with constant, used to evaluate its symbolic so that we can use it as numpy lambda function
         self.G = self.G.subs(parameter_map)
