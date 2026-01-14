@@ -26,6 +26,9 @@ class LQR():
 
         self.force2thrusteffort = np.zeros(self.numthrusters)
         self.force2thrusteffort_counteract = np.eye(self.numthrusters) * self.force2thrusteffort_forward
+        
+        self.time_history = []
+        self.du_history = []
 
     # the lqr control loop
     def step(self, state):
@@ -70,6 +73,7 @@ class LQR():
         du_gravity_effects = np.linalg.lstsq(self.thrust_allocation, gravity_effects, rcond=None)[0].flatten() # maps the force to thrust (N)
         du_gravity_effects = self.force2thrusteffort_counteract @ du_gravity_effects # convert thrust-force to thrust-effort
         self.du = self.du - du_gravity_effects
+        self.du_history.append(self.du.copy())
 
         # print(f"state: {state}")
         # print(self.A.shape, self.B.shape, self.du.shape)
@@ -80,7 +84,9 @@ class LQR():
         # print(f"self.thrust_allocation: {self.thrust_allocation}")
         return self.A, self.B, self.du
 
+
     def simulated_step(self, t, state):
+        self.time_history.append(t)
         self.A, self.B, self.du = self.step(state)
         return (self.A @ state + self.B @ self.du).flatten()
 

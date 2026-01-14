@@ -25,7 +25,8 @@ state = [
 
 def main():
     state_0 = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-    target_state = np.array([1, 2, 3, 0, 0, 1.57, 0, 0, 0, 0, 0, 0])
+    # target_state = np.array([1, 2, 3, 0, 0, 1.57, 0, 0, 0, 0, 0, 0])
+    target_state = np.array([0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0])
 
     Q = np.array([1, 1, 4, 4, 1, 1, 3, 3, 3, 4, 4, 4])
     R = 0.001
@@ -50,7 +51,7 @@ def main():
     state = sol.y.T
 
     plt.figure(figsize=(12, 6))
-    plt.subplot(2,1,1)
+    plt.subplot(3,1,1)
     plt.plot(t_span, state[:, :6])
     plt.title('Robot Pose')
     plt.xlabel('time (s)')
@@ -58,13 +59,25 @@ def main():
     plt.legend(['x','y','z','roll','pitch','yaw'])
     plt.grid(True)
 
-    plt.subplot(2,1,2)
+    plt.subplot(3,1,2)
     plt.plot(t_span, state[:, 6:12])
     plt.title('Robot Velocity')
     plt.xlabel('time (s)')
     plt.ylabel('(m/s) or (rad/s)')
     plt.legend(['u','v','w','p','q','r'])
     plt.grid(True)
+    plt.show()
+
+    plt.subplot(3, 1, 3)
+    du_array = np.array(lqr.du_history)
+    time_array = np.array(lqr.time_history)
+    plt.plot(time_array, du_array)
+    plt.title('Thruster Effort')
+    plt.xlabel('time (s)')
+    plt.ylabel('(%)')
+    plt.legend([f'Thruster {i}' for i in range(du_array.shape[1])])
+    plt.grid(True)
+    plt.tight_layout()
     plt.show()
 
 
