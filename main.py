@@ -2,7 +2,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import control as ct
 
-from config import *
+from config_8thruster import *
 from state_space import *
 from lqr import *
 
@@ -42,6 +42,7 @@ def main():
     # lqr
     lqr = LQR(state_0, target_state, ss.df_dstate_funct, ss.df_dcontrol, ss.G, ss.thrust_allocation, Q, R)
 
+    print("Wait until completed...")
     sol = solve_ivp(lqr.simulated_step, [t_lower, t_upper], state_0, t_eval=t_span)
 
 
