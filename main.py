@@ -66,7 +66,6 @@ def main():
     plt.ylabel('(m/s) or (rad/s)')
     plt.legend(['u','v','w','p','q','r'])
     plt.grid(True)
-    plt.show()
 
     plt.subplot(3, 1, 3)
     du_array = np.array(lqr.du_history)
